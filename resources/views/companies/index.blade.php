@@ -33,52 +33,56 @@
 
     </form>
 
-    @if(!empty($query))
+@if(!empty($query))
 
-         <h4 class="mb-3">Results</h4>
+    <h4 class="mb-3">Results</h4>
 
     <p class="text-muted mb-3">
-        {{ $companies->count() }} result(s) found
+        {{ $companies->total() }} result(s) found
     </p>
 
-        @if($companies->count())
+    @if($companies->count())
 
-            <ul class="list-group">
+        <ul class="list-group">
 
-                @foreach($companies as $company)
+            @foreach($companies as $company)
 
-                    <li class="list-group-item">
+                <li class="list-group-item">
 
-                        <a href="{{ route('companies.show', $company) }}">
+                    <a href="{{ route('companies.show', $company) }}">
 
-                            <strong>{{ $company->name }}</strong>
+                        <strong>{{ $company->name }}</strong>
 
-                        </a>
+                    </a>
 
+                    <br>
+
+                    Enterprise number : {{ $company->enterprise_number }}
+
+                    @if($company->city)
                         <br>
+                        {{ $company->city }}
+                    @endif
 
-                        Enterprise number : {{ $company->enterprise_number }}
+                </li>
 
-                        @if($company->city)
-                            <br>
-                            {{ $company->city }}
-                        @endif
+            @endforeach
 
-                    </li>
+        </ul>
 
-                @endforeach
+        <div class="mt-4">
+            {{ $companies->links() }}
+        </div>
 
-            </ul>
+    @else
 
-        @else
-
-            <div class="alert alert-warning">
-                No company found
-            </div>
-
-        @endif
+        <div class="alert alert-warning">
+            No company found
+        </div>
 
     @endif
+
+@endif
 
 </div>
 
