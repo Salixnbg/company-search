@@ -48,6 +48,23 @@
             Back to search
         </a>
 
+        @php
+            $formattedEnterpriseNumber = $company->enterprise_number
+                ? substr($company->enterprise_number, 0, 4) . '.' .
+                  substr($company->enterprise_number, 4, 3) . '.' .
+                  substr($company->enterprise_number, 7, 3)
+                : 'N/A';
+
+            $cleanVatNumber = str_replace('BE', '', $company->vat_number ?? '');
+
+            $formattedVatNumber = $cleanVatNumber
+                ? 'BE ' .
+                  substr($cleanVatNumber, 0, 4) . '.' .
+                  substr($cleanVatNumber, 4, 3) . '.' .
+                  substr($cleanVatNumber, 7, 3)
+                : 'N/A';
+        @endphp
+
         <div class="card detail-card">
             <div class="card-body p-4 p-md-5">
 
@@ -67,12 +84,12 @@
                         <div class="border rounded p-3 bg-light h-100">
                             <p class="mb-2">
                                 <span class="info-label">Enterprise number:</span><br>
-                                <span class="info-value">{{ $company->enterprise_number ?: 'N/A' }}</span>
+                                <span class="info-value">{{ $formattedEnterpriseNumber }}</span>
                             </p>
 
                             <p class="mb-2">
                                 <span class="info-label">VAT number:</span><br>
-                                <span class="info-value">{{ $company->vat_number ?: 'N/A' }}</span>
+                                <span class="info-value">{{ $formattedVatNumber }}</span>
                             </p>
 
                             <p class="mb-0">

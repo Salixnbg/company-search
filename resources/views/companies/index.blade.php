@@ -111,13 +111,21 @@
 
                     @foreach($companies as $company)
 
+                        @php
+                            $formattedEnterpriseNumber = $company->enterprise_number
+                                ? substr($company->enterprise_number, 0, 4) . '.' .
+                                  substr($company->enterprise_number, 4, 3) . '.' .
+                                  substr($company->enterprise_number, 7, 3)
+                                : 'N/A';
+                        @endphp
+
                         <a href="{{ route('companies.show', $company) }}" class="result-link">
                             <div class="list-group-item result-item mb-2 border">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <h5 class="mb-1">{{ $company->name }}</h5>
                                         <p class="mb-1 text-muted">
-                                            Enterprise number: {{ $company->enterprise_number }}
+                                            Enterprise number: {{ $formattedEnterpriseNumber }}
                                         </p>
 
                                         @if($company->city || $company->postal_code)
@@ -180,13 +188,17 @@
             }
 
             companies.forEach(company => {
+                const formattedEnterpriseNumber = company.enterprise_number
+                    ? `${company.enterprise_number.substring(0, 4)}.${company.enterprise_number.substring(4, 7)}.${company.enterprise_number.substring(7, 10)}`
+                    : 'N/A';
+
                 const item = document.createElement('a');
                 item.href = `/companies/${company.id}`;
                 item.className = 'list-group-item list-group-item-action';
 
                 item.innerHTML = `
                     <strong>${company.name}</strong><br>
-                    <small>Enterprise number: ${company.enterprise_number}${company.city ? ' - ' + company.city : ''}</small>
+                    <small>Enterprise number: ${formattedEnterpriseNumber}${company.city ? ' - ' + company.city : ''}</small>
                 `;
 
                 suggestionsBox.appendChild(item);
