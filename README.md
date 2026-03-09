@@ -10,7 +10,7 @@ The application also includes an **admin dashboard** that allows managing compan
 
 The application is available online at:
 
-**https://MY-DEPLOYED-SITE-URL**
+**https://belgian-company-search.onrender.com**
 
 ---
 
