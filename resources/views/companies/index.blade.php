@@ -58,14 +58,98 @@
             overflow: hidden;
         }
 
-        /* Texte du champ de recherche plus transparent */
-
         input.form-control {
             color: rgba(0,0,0,0.65);
         }
 
         input.form-control::placeholder {
             color: rgba(0,0,0,0.35);
+        }
+
+        .pagination-wrapper nav {
+            display: flex;
+            justify-content: center;
+        }
+
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+
+            .container.py-4 {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+
+            .hero-title {
+                font-size: 1.5rem;
+            }
+
+            .hero-text {
+                font-size: 0.95rem;
+            }
+
+            .search-card .card-body {
+                padding: 1rem !important;
+            }
+
+            .top-actions {
+                justify-content: stretch;
+            }
+
+            .top-actions > * {
+                flex: 1 1 100%;
+            }
+
+            .top-actions .btn,
+            .top-actions form,
+            .top-actions form button {
+                width: 100%;
+            }
+
+            .input-group {
+                display: block;
+            }
+
+            .input-group .form-control {
+                width: 100%;
+                border-radius: 0.5rem;
+                margin-bottom: 0.75rem;
+                font-size: 1rem;
+            }
+
+            .input-group .btn {
+                width: 100%;
+                border-radius: 0.5rem;
+                font-size: 1rem;
+            }
+
+            .d-flex.justify-content-between.align-items-center.mb-3 {
+                display: block !important;
+            }
+
+            .d-flex.justify-content-between.align-items-center.mb-3 h4 {
+                margin-bottom: 0.5rem;
+            }
+
+            .result-item .d-flex {
+                display: block !important;
+            }
+
+            .result-item .badge {
+                margin-top: 0.75rem;
+                display: inline-block;
+            }
+
+            #suggestions {
+                position: static !important;
+                margin-top: 0.5rem !important;
+            }
+
         }
 
     </style>
@@ -78,7 +162,7 @@
 
     <div class="search-wrapper">
 
-        <div class="d-flex justify-content-end gap-2 mb-4">
+        <div class="top-actions mb-4">
 
             <a href="{{ route('vat.index') }}" class="btn btn-outline-primary btn-sm">
                 VAT Check
@@ -113,7 +197,7 @@
                 Belgian Company Search
             </h1>
 
-            <p class="hero-text">
+            <p class="hero-text mb-0">
                 Search for a Belgian company by VAT number or company name
             </p>
 
@@ -254,6 +338,10 @@
 
 const searchInput = document.getElementById('searchInput');
 const suggestionsBox = document.getElementById('suggestions');
+
+searchInput.addEventListener('focus', () => {
+    searchInput.select();
+});
 
 searchInput.addEventListener('input', async function () {
 

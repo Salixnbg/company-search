@@ -35,6 +35,36 @@
 
         .info-value {
             color: #212529;
+            word-break: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .container.py-5 {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+
+            .detail-card .card-body {
+                padding: 1rem !important;
+            }
+
+            .company-title {
+                font-size: 1.4rem;
+            }
+
+            .btn.mb-4,
+            .btn-outline-secondary.mb-4 {
+                width: 100%;
+            }
+
+            .d-flex.justify-content-between.align-items-start.mb-4 {
+                display: block !important;
+            }
+
+            .badge {
+                margin-top: 0.5rem;
+                display: inline-block;
+            }
         }
     </style>
 </head>
@@ -49,20 +79,17 @@
         </a>
 
         @php
-            $formattedEnterpriseNumber = $company->enterprise_number
-                ? substr($company->enterprise_number, 0, 4) . '.' .
-                  substr($company->enterprise_number, 4, 3) . '.' .
-                  substr($company->enterprise_number, 7, 3)
-                : 'N/A';
+            $enterpriseNumber = preg_replace('/\D/', '', $company->enterprise_number ?? '');
+            $formattedEnterpriseNumber = strlen($enterpriseNumber) === 10
+                ? substr($enterpriseNumber, 0, 4) . '.' . substr($enterpriseNumber, 4, 3) . '.' . substr($enterpriseNumber, 7, 3)
+                : ($company->enterprise_number ?: 'N/A');
 
-            $cleanVatNumber = str_replace('BE', '', $company->vat_number ?? '');
+            $rawVat = strtoupper($company->vat_number ?? '');
+            $cleanVatNumber = preg_replace('/\D/', '', str_replace('BE', '', $rawVat));
 
-            $formattedVatNumber = $cleanVatNumber
-                ? 'BE ' .
-                  substr($cleanVatNumber, 0, 4) . '.' .
-                  substr($cleanVatNumber, 4, 3) . '.' .
-                  substr($cleanVatNumber, 7, 3)
-                : 'N/A';
+            $formattedVatNumber = strlen($cleanVatNumber) === 10
+                ? 'BE ' . substr($cleanVatNumber, 0, 4) . '.' . substr($cleanVatNumber, 4, 3) . '.' . substr($cleanVatNumber, 7, 3)
+                : ($company->vat_number ?: 'N/A');
         @endphp
 
         <div class="card detail-card">
@@ -93,7 +120,7 @@
                             </p>
 
                             @if($formattedVatNumber !== 'N/A')
-                                <button class="btn btn-sm btn-outline-primary mb-2" onclick="copyVatNumber()">
+                                <button class="btn btn-sm btn-outline-primary mb-2 w-100 w-md-auto" onclick="copyVatNumber()">
                                     Copy VAT number
                                 </button>
                                 <div id="copyMessage" class="text-success small" style="display: none;">
@@ -145,18 +172,18 @@
 </div>
 
 <script>
-    function copyVatNumber() {
-        const vatText = document.getElementById('vatNumber').innerText;
-        const copyMessage = document.getElementById('copyMessage');
+function copyVatNumber() {
+    const vatText = document.getElementById('vatNumber').innerText;
+    const copyMessage = document.getElementById('copyMessage');
 
-        navigator.clipboard.writeText(vatText).then(() => {
-            copyMessage.style.display = 'block';
+    navigator.clipboard.writeText(vatText).then(() => {
+        copyMessage.style.display = 'block';
 
-            setTimeout(() => {
-                copyMessage.style.display = 'none';
-            }, 2000);
-        });
-    }
+        setTimeout(() => {
+            copyMessage.style.display = 'none';
+        }, 2000);
+    });
+}
 </script>
 
 </body>
