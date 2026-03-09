@@ -6,84 +6,155 @@
     <title>Company Search</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f4f7fb;
+        }
+
+        .search-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .search-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f3c88;
+        }
+
+        .hero-text {
+            color: #6c757d;
+        }
+
+        .result-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .result-link:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .result-item {
+            border-radius: 10px;
+            transition: 0.2s ease;
+        }
+
+        .result-item:hover {
+            background-color: #f8fbff;
+        }
+
+        #suggestions {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
 <div class="container py-5">
+    <div class="search-wrapper">
 
-    <h1 class="mb-4">Belgian Company Search</h1>
+        <div class="text-center mb-4">
+            <h1 class="hero-title">Belgian Company Search</h1>
+            <p class="hero-text">
+                Search for a Belgian company by VAT number or company name
+            </p>
+        </div>
 
-    <form method="GET" action="{{ route('companies.index') }}" autocomplete="off">
-        <div class="position-relative">
-            <div class="input-group mb-1">
-                <input
-                    type="text"
-                    id="searchInput"
-                    name="q"
-                    class="form-control"
-                    placeholder="VAT number or company name"
-                    value="{{ $query }}"
-                >
+        <div class="card search-card mb-4">
+            <div class="card-body p-4">
+                <form method="GET" action="{{ route('companies.index') }}" autocomplete="off">
+                    <div class="position-relative">
+                        <div class="input-group">
+                            <input
+                                type="text"
+                                id="searchInput"
+                                name="q"
+                                class="form-control form-control-lg"
+                                placeholder="Enter VAT number or company name"
+                                value="{{ $query }}"
+                            >
 
-                <button class="btn btn-primary">
-                    Search
-                </button>
+                            <button class="btn btn-primary btn-lg">
+                                Search
+                            </button>
+                        </div>
+
+                        <div id="suggestions" class="list-group position-absolute w-100 mt-1 shadow-sm" style="z-index: 1000;"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @if(!empty($query))
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">Results</h4>
+                <p class="text-muted mb-0">
+                    {{ $companies->total() }} result(s) found
+                </p>
             </div>
 
-            <div id="suggestions" class="list-group position-absolute w-100 shadow-sm" style="z-index: 1000;"></div>
-        </div>
-    </form>
+            @if($companies->count())
 
-    @if(!empty($query))
+                <div class="list-group">
 
-        <h4 class="mb-3 mt-4">Results</h4>
+                    @foreach($companies as $company)
 
-        <p class="text-muted mb-3">
-            {{ $companies->total() }} result(s) found
-        </p>
+                        <a href="{{ route('companies.show', $company) }}" class="result-link">
+                            <div class="list-group-item result-item mb-2 border">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="mb-1">{{ $company->name }}</h5>
+                                        <p class="mb-1 text-muted">
+                                            Enterprise number: {{ $company->enterprise_number }}
+                                        </p>
 
-        @if($companies->count())
+                                        @if($company->city || $company->postal_code)
+                                            <small class="text-secondary">
+                                                {{ $company->postal_code }} {{ $company->city }}
+                                            </small>
+                                        @endif
+                                    </div>
 
-            <ul class="list-group">
-
-                @foreach($companies as $company)
-
-                    <li class="list-group-item">
-
-                        <a href="{{ route('companies.show', $company) }}">
-                            <strong>{{ $company->name }}</strong>
+                                    @if($company->status)
+                                        <span class="badge bg-secondary">
+                                            {{ $company->status }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
                         </a>
 
-                        <br>
+                    @endforeach
 
-                        Enterprise number: {{ $company->enterprise_number }}
+                </div>
 
-                        @if($company->city)
-                            <br>
-                            {{ $company->city }}
-                        @endif
+                <div class="mt-4">
+                    {{ $companies->appends(['q' => $query])->links() }}
+                </div>
 
-                    </li>
+            @else
 
-                @endforeach
+                <div class="alert alert-warning">
+                    No company found.
+                </div>
 
-            </ul>
-
-            <div class="mt-4">
-                {{ $companies->appends(['q' => $query])->links() }}
-            </div>
-
-        @else
-
-            <div class="alert alert-warning">
-                No company found
-            </div>
+            @endif
 
         @endif
 
-    @endif
-
+    </div>
 </div>
 
 <script>
