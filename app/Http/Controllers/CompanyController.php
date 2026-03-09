@@ -14,20 +14,15 @@ class CompanyController extends Controller
         $companies = collect();
 
         if ($query !== '') {
-
             $normalized = strtoupper(str_replace([' ', '.', '-', '/'], '', $query));
             $normalized = str_replace('BE', '', $normalized);
 
             $companies = Company::query()
                 ->when(is_numeric($normalized), function ($q) use ($normalized) {
-
                     $q->where('enterprise_number', 'like', '%' . $normalized . '%')
                       ->orWhere('vat_number', 'like', '%' . $normalized . '%');
-
                 }, function ($q) use ($query) {
-
                     $q->where('name', 'like', '%' . $query . '%');
-
                 })
                 ->orderBy('name')
                 ->paginate(10);
@@ -42,5 +37,30 @@ class CompanyController extends Controller
     public function show(Company $company)
     {
         return view('companies.show', compact('company'));
+    }
+
+    public function autocomplete(Request $request)
+    {
+        $query = trim($request->input('q', ''));
+
+        if ($query === '') {
+            return response()->json([]);
+        }
+
+        $normalized = strtoupper(str_replace([' ', '.', '-', '/'], '', $query));
+        $normalized = str_replace('BE', '', $normalized);
+
+        $companies = Company::query()
+            ->when(is_numeric($normalized), function ($q) use ($normalized) {
+                $q->where('enterprise_number', 'like', '%' . $normalized . '%')
+                  ->orWhere('vat_number', 'like', '%' . $normalized . '%');
+            }, function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%');
+            })
+            ->orderBy('name')
+            ->limit(5)
+            ->get(['id', 'name', 'enterprise_number', 'city']);
+
+        return response()->json($companies);
     }
 }
