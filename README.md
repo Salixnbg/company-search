@@ -69,3 +69,10 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/Salixnbg/company-search.git
+
+
+
+//Login ADMIN
+
+Email : admin@egov.be
+Password : Spf1234*
