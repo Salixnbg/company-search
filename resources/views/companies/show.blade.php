@@ -89,8 +89,17 @@
 
                             <p class="mb-2">
                                 <span class="info-label">VAT number:</span><br>
-                                <span class="info-value">{{ $formattedVatNumber }}</span>
+                                <span class="info-value" id="vatNumber">{{ $formattedVatNumber }}</span>
                             </p>
+
+                            @if($formattedVatNumber !== 'N/A')
+                                <button class="btn btn-sm btn-outline-primary mb-2" onclick="copyVatNumber()">
+                                    Copy VAT number
+                                </button>
+                                <div id="copyMessage" class="text-success small" style="display: none;">
+                                    VAT number copied
+                                </div>
+                            @endif
 
                             <p class="mb-0">
                                 <span class="info-label">Legal form:</span><br>
@@ -134,6 +143,21 @@
 
     </div>
 </div>
+
+<script>
+    function copyVatNumber() {
+        const vatText = document.getElementById('vatNumber').innerText;
+        const copyMessage = document.getElementById('copyMessage');
+
+        navigator.clipboard.writeText(vatText).then(() => {
+            copyMessage.style.display = 'block';
+
+            setTimeout(() => {
+                copyMessage.style.display = 'none';
+            }, 2000);
+        });
+    }
+</script>
 
 </body>
 </html>
