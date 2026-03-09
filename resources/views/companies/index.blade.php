@@ -33,9 +33,13 @@
 
     </form>
 
-    @if($query)
+    @if(!empty($query))
 
-        <h4 class="mb-3">Results</h4>
+         <h4 class="mb-3">Results</h4>
+
+    <p class="text-muted mb-3">
+        {{ $companies->count() }} result(s) found
+    </p>
 
         @if($companies->count())
 
