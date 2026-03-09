@@ -56,16 +56,53 @@
             border-radius: 10px;
             overflow: hidden;
         }
+
+        .pagination {
+            margin-bottom: 0;
+        }
+
+        .pagination-wrapper nav {
+            display: flex;
+            justify-content: center;
+        }
     </style>
 </head>
 
 <body>
 
-<div class="container py-5">
+<div class="container py-4">
     <div class="search-wrapper">
 
+        <div class="d-flex justify-content-end gap-2 mb-4">
+
+            <a href="{{ route('vat.index') }}" class="btn btn-outline-primary btn-sm">
+                VAT Check
+            </a>
+
+            @auth
+                <a href="{{ route('admin.companies.index') }}" class="btn btn-outline-dark btn-sm">
+                    Admin
+                </a>
+
+                <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        Logout
+                    </button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-sm">
+                    Login
+                </a>
+            @endauth
+
+        </div>
+
         <div class="text-center mb-4">
-            <h1 class="hero-title">Belgian Company Search</h1>
+            <h1 class="hero-title">
+                Belgian Company Search
+            </h1>
+
             <p class="hero-text">
                 Search for a Belgian company by VAT number or company name
             </p>
@@ -73,9 +110,13 @@
 
         <div class="card search-card mb-4">
             <div class="card-body p-4">
+
                 <form method="GET" action="{{ route('companies.index') }}" autocomplete="off">
+
                     <div class="position-relative">
+
                         <div class="input-group">
+
                             <input
                                 type="text"
                                 id="searchInput"
@@ -88,21 +129,34 @@
                             <button class="btn btn-primary btn-lg">
                                 Search
                             </button>
+
                         </div>
 
-                        <div id="suggestions" class="list-group position-absolute w-100 mt-1 shadow-sm" style="z-index: 1000;"></div>
+                        <div
+                            id="suggestions"
+                            class="list-group position-absolute w-100 mt-1 shadow-sm"
+                            style="z-index:1000;">
+                        </div>
+
                     </div>
+
                 </form>
+
             </div>
         </div>
 
         @if(!empty($query))
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">Results</h4>
+
+                <h4 class="mb-0">
+                    Results
+                </h4>
+
                 <p class="text-muted mb-0">
                     {{ $companies->total() }} result(s) found
                 </p>
+
             </div>
 
             @if($companies->count())
@@ -119,37 +173,54 @@
                                 : 'N/A';
                         @endphp
 
-                        <a href="{{ route('companies.show', $company) }}" class="result-link">
+                        <a
+                            href="{{ route('companies.show', $company) }}"
+                            class="result-link">
+
                             <div class="list-group-item result-item mb-2 border">
+
                                 <div class="d-flex justify-content-between align-items-start">
+
                                     <div>
-                                        <h5 class="mb-1">{{ $company->name }}</h5>
+
+                                        <h5 class="mb-1">
+                                            {{ $company->name }}
+                                        </h5>
+
                                         <p class="mb-1 text-muted">
                                             Enterprise number: {{ $formattedEnterpriseNumber }}
                                         </p>
 
                                         @if($company->city || $company->postal_code)
+
                                             <small class="text-secondary">
                                                 {{ $company->postal_code }} {{ $company->city }}
                                             </small>
+
                                         @endif
+
                                     </div>
 
                                     @if($company->status)
+
                                         <span class="badge bg-secondary">
                                             {{ $company->status }}
                                         </span>
+
                                     @endif
+
                                 </div>
+
                             </div>
+
                         </a>
 
                     @endforeach
 
                 </div>
 
-                <div class="mt-4">
-                    {{ $companies->appends(['q' => $query])->links() }}
+                <div class="mt-4 pagination-wrapper">
+                    {{ $companies->appends(['q' => $query])->links('pagination::bootstrap-5') }}
                 </div>
 
             @else
@@ -166,53 +237,54 @@
 </div>
 
 <script>
-    const searchInput = document.getElementById('searchInput');
-    const suggestionsBox = document.getElementById('suggestions');
+const searchInput = document.getElementById('searchInput');
+const suggestionsBox = document.getElementById('suggestions');
 
-    searchInput.addEventListener('input', async function () {
-        const query = this.value.trim();
+searchInput.addEventListener('input', async function () {
+    const query = this.value.trim();
 
-        if (query.length < 2) {
-            suggestionsBox.innerHTML = '';
+    if (query.length < 2) {
+        suggestionsBox.innerHTML = '';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/companies/search?q=${encodeURIComponent(query)}`);
+        const companies = await response.json();
+
+        suggestionsBox.innerHTML = '';
+
+        if (companies.length === 0) {
             return;
         }
 
-        try {
-            const response = await fetch(`/api/companies/search?q=${encodeURIComponent(query)}`);
-            const companies = await response.json();
+        companies.forEach(company => {
+            const formattedEnterpriseNumber = company.enterprise_number
+                ? `${company.enterprise_number.substring(0,4)}.${company.enterprise_number.substring(4,7)}.${company.enterprise_number.substring(7,10)}`
+                : 'N/A';
 
-            suggestionsBox.innerHTML = '';
+            const item = document.createElement('a');
+            item.href = `/companies/${company.id}`;
+            item.className = 'list-group-item list-group-item-action';
 
-            if (companies.length === 0) {
-                return;
-            }
+            item.innerHTML = `
+                <strong>${company.name}</strong><br>
+                <small>Enterprise number: ${formattedEnterpriseNumber}${company.city ? ' - ' + company.city : ''}</small>
+            `;
 
-            companies.forEach(company => {
-                const formattedEnterpriseNumber = company.enterprise_number
-                    ? `${company.enterprise_number.substring(0, 4)}.${company.enterprise_number.substring(4, 7)}.${company.enterprise_number.substring(7, 10)}`
-                    : 'N/A';
+            suggestionsBox.appendChild(item);
+        });
 
-                const item = document.createElement('a');
-                item.href = `/companies/${company.id}`;
-                item.className = 'list-group-item list-group-item-action';
+    } catch (error) {
+        suggestionsBox.innerHTML = '';
+    }
+});
 
-                item.innerHTML = `
-                    <strong>${company.name}</strong><br>
-                    <small>Enterprise number: ${formattedEnterpriseNumber}${company.city ? ' - ' + company.city : ''}</small>
-                `;
-
-                suggestionsBox.appendChild(item);
-            });
-        } catch (error) {
-            suggestionsBox.innerHTML = '';
-        }
-    });
-
-    document.addEventListener('click', function (event) {
-        if (!suggestionsBox.contains(event.target) && event.target !== searchInput) {
-            suggestionsBox.innerHTML = '';
-        }
-    });
+document.addEventListener('click', function (event) {
+    if (!suggestionsBox.contains(event.target) && event.target !== searchInput) {
+        suggestionsBox.innerHTML = '';
+    }
+});
 </script>
 
 </body>
