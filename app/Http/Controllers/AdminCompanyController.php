@@ -21,7 +21,6 @@ class AdminCompanyController extends Controller
                              ->orWhere('enterprise_number', 'like', '%' . $normalized . '%');
                 });
             })
-            ->orderByRaw("name REGEXP '^[A-Za-z]' DESC")
             ->orderBy('name', 'asc')
             ->paginate(50)
             ->appends(['q' => $query]);
