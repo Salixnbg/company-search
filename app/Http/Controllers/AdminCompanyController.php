@@ -7,11 +7,29 @@ use Illuminate\Http\Request;
 
 class AdminCompanyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $companies = Company::orderBy('id', 'desc')->paginate(15);
+        $query = trim($request->input('q', ''));
 
-        return view('admin.companies.index', compact('companies'));
+        $companies = Company::query()
+            ->when($query !== '', function ($q) use ($query) {
+                $normalized = strtoupper(str_replace([' ', '.', '-', '/'], '', $query));
+                $normalized = str_replace('BE', '', $normalized);
+
+                $q->where(function ($subQuery) use ($query, $normalized) {
+                    $subQuery->where('name', 'like', '%' . $query . '%')
+                             ->orWhere('enterprise_number', 'like', '%' . $normalized . '%');
+                });
+            })
+            ->orderByRaw("name REGEXP '^[A-Za-z]' DESC")
+            ->orderBy('name', 'asc')
+            ->paginate(50)
+            ->appends(['q' => $query]);
+
+        return view('admin.companies.index', [
+            'companies' => $companies,
+            'query' => $query,
+        ]);
     }
 
     public function create()

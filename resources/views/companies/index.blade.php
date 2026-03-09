@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+
         body {
             background-color: #f4f7fb;
         }
@@ -57,20 +58,24 @@
             overflow: hidden;
         }
 
-        .pagination {
-            margin-bottom: 0;
+        /* Texte du champ de recherche plus transparent */
+
+        input.form-control {
+            color: rgba(0,0,0,0.65);
         }
 
-        .pagination-wrapper nav {
-            display: flex;
-            justify-content: center;
+        input.form-control::placeholder {
+            color: rgba(0,0,0,0.35);
         }
+
     </style>
+
 </head>
 
 <body>
 
 <div class="container py-4">
+
     <div class="search-wrapper">
 
         <div class="d-flex justify-content-end gap-2 mb-4">
@@ -80,6 +85,7 @@
             </a>
 
             @auth
+
                 <a href="{{ route('admin.companies.index') }}" class="btn btn-outline-dark btn-sm">
                     Admin
                 </a>
@@ -90,15 +96,19 @@
                         Logout
                     </button>
                 </form>
+
             @else
+
                 <a href="{{ route('login') }}" class="btn btn-outline-secondary btn-sm">
                     Login
                 </a>
+
             @endauth
 
         </div>
 
         <div class="text-center mb-4">
+
             <h1 class="hero-title">
                 Belgian Company Search
             </h1>
@@ -106,9 +116,11 @@
             <p class="hero-text">
                 Search for a Belgian company by VAT number or company name
             </p>
+
         </div>
 
         <div class="card search-card mb-4">
+
             <div class="card-body p-4">
 
                 <form method="GET" action="{{ route('companies.index') }}" autocomplete="off">
@@ -143,6 +155,7 @@
                 </form>
 
             </div>
+
         </div>
 
         @if(!empty($query))
@@ -234,13 +247,16 @@
         @endif
 
     </div>
+
 </div>
 
 <script>
+
 const searchInput = document.getElementById('searchInput');
 const suggestionsBox = document.getElementById('suggestions');
 
 searchInput.addEventListener('input', async function () {
+
     const query = this.value.trim();
 
     if (query.length < 2) {
@@ -249,6 +265,7 @@ searchInput.addEventListener('input', async function () {
     }
 
     try {
+
         const response = await fetch(`/api/companies/search?q=${encodeURIComponent(query)}`);
         const companies = await response.json();
 
@@ -259,11 +276,13 @@ searchInput.addEventListener('input', async function () {
         }
 
         companies.forEach(company => {
+
             const formattedEnterpriseNumber = company.enterprise_number
                 ? `${company.enterprise_number.substring(0,4)}.${company.enterprise_number.substring(4,7)}.${company.enterprise_number.substring(7,10)}`
                 : 'N/A';
 
             const item = document.createElement('a');
+
             item.href = `/companies/${company.id}`;
             item.className = 'list-group-item list-group-item-action';
 
@@ -273,18 +292,25 @@ searchInput.addEventListener('input', async function () {
             `;
 
             suggestionsBox.appendChild(item);
+
         });
 
     } catch (error) {
+
         suggestionsBox.innerHTML = '';
+
     }
+
 });
 
 document.addEventListener('click', function (event) {
+
     if (!suggestionsBox.contains(event.target) && event.target !== searchInput) {
         suggestionsBox.innerHTML = '';
     }
+
 });
+
 </script>
 
 </body>
