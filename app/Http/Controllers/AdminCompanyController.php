@@ -11,11 +11,11 @@ class AdminCompanyController extends Controller
     public function index(Request $request)
     {
         $query = trim($request->input('q', ''));
-        $driver = DB::connection()->getDriverName();
 
         $companies = Company::query();
 
         if ($query !== '') {
+
             $normalized = strtoupper($query);
             $normalized = str_replace([' ', '.', '-', '/', '\\'], '', $normalized);
 
@@ -23,16 +23,23 @@ class AdminCompanyController extends Controller
                 $normalized = substr($normalized, 2);
             }
 
-            $enterpriseExpr = $driver === 'pgsql'
-                ? "CAST(enterprise_number AS TEXT)"
-                : "CAST(enterprise_number AS CHAR)";
+            $companies->where(function ($q) use ($query, $normalized) {
 
-            $normalizedEnterpriseExpr = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER({$enterpriseExpr}), ' ', ''), '.', ''), '-', ''), '/', ''), '\\\\', '')";
-
-            $companies->where(function ($q) use ($query, $normalized, $enterpriseExpr, $normalizedEnterpriseExpr) {
                 $q->whereRaw("LOWER(name) LIKE ?", ['%' . strtolower($query) . '%'])
-                  ->orWhereRaw("{$enterpriseExpr} LIKE ?", ['%' . $query . '%'])
-                  ->orWhereRaw("{$normalizedEnterpriseExpr} LIKE ?", ['%' . $normalized . '%']);
+
+                  ->orWhereRaw("CAST(enterprise_number AS CHAR) LIKE ?", ['%' . $query . '%'])
+
+                  ->orWhereRaw("
+                    REPLACE(
+                        REPLACE(
+                            REPLACE(
+                                REPLACE(
+                                    REPLACE(UPPER(CAST(enterprise_number AS CHAR)),' ',''),'.',''
+                                ),'-',''
+                            ),'/',''
+                        ),'\\\\',''
+                    ) LIKE ?
+                  ", ['%' . $normalized . '%']);
             });
         }
 
@@ -47,10 +54,12 @@ class AdminCompanyController extends Controller
         ]);
     }
 
+
     public function create()
     {
         return view('admin.companies.create');
     }
+
 
     public function store(Request $request)
     {
@@ -59,12 +68,16 @@ class AdminCompanyController extends Controller
             'enterprise_number' => ['required', 'string', 'max:50'],
         ]);
 
-        Company::create($validated);
+        $company = new Company();
+        $company->name = trim($validated['name']);
+        $company->enterprise_number = trim($validated['enterprise_number']);
+        $company->save();
 
         return redirect()
             ->route('admin.companies.index')
             ->with('success', 'Company created successfully.');
     }
+
 
     public function edit(Company $company)
     {
@@ -73,6 +86,7 @@ class AdminCompanyController extends Controller
         ]);
     }
 
+
     public function update(Request $request, Company $company)
     {
         $validated = $request->validate([
@@ -80,12 +94,15 @@ class AdminCompanyController extends Controller
             'enterprise_number' => ['required', 'string', 'max:50'],
         ]);
 
-        $company->update($validated);
+        $company->name = trim($validated['name']);
+        $company->enterprise_number = trim($validated['enterprise_number']);
+        $company->save();
 
         return redirect()
             ->route('admin.companies.index')
             ->with('success', 'Company updated successfully.');
     }
+
 
     public function destroy(Company $company)
     {
