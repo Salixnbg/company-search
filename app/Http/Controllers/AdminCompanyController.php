@@ -11,16 +11,10 @@ class AdminCompanyController extends Controller
     public function index(Request $request)
     {
         $query = trim($request->input('q', ''));
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'pgsql') {
-            $enterpriseNumberAsText = 'CAST(enterprise_number AS TEXT)';
-        } else {
-            $enterpriseNumberAsText = 'CAST(enterprise_number AS CHAR)';
-        }
 
         $companies = Company::query()
-            ->when($query !== '', function ($q) use ($query, $enterpriseNumberAsText) {
+            ->when($query !== '', function ($q) use ($query) {
+
                 $normalized = strtoupper($query);
                 $normalized = str_replace([' ', '.', '-', '/'], '', $normalized);
 
@@ -28,27 +22,32 @@ class AdminCompanyController extends Controller
                     $normalized = substr($normalized, 2);
                 }
 
-                $q->where(function ($subQuery) use ($query, $normalized, $enterpriseNumberAsText) {
+                $q->where(function ($subQuery) use ($query, $normalized) {
+
                     $subQuery->where('name', 'like', '%' . $query . '%')
-                        ->orWhereRaw("$enterpriseNumberAsText LIKE ?", ['%' . $query . '%'])
-                        ->orWhereRaw("
-                            REPLACE(
+                             ->orWhere('enterprise_number', 'like', '%' . $query . '%')
+                             ->orWhereRaw("
                                 REPLACE(
                                     REPLACE(
-                                        REPLACE(UPPER($enterpriseNumberAsText), ' ', ''),
-                                    '.', ''),
-                                '-', ''),
-                            '/', '') LIKE ?
-                        ", ['%' . $normalized . '%']);
+                                        REPLACE(
+                                            REPLACE(UPPER(enterprise_number),' ',''),'.',''
+                                        ),'-',''
+                                    ),'/',''
+                                ) LIKE ?
+                             ", ['%' . $normalized . '%']);
                 });
             })
+
+            // TRI ALPHABÉTIQUE AUTOMATIQUE
             ->orderBy('name', 'asc')
+
+            // PAGINATION
             ->paginate(50)
             ->appends(['q' => $query]);
 
         return view('admin.companies.index', [
             'companies' => $companies,
-            'query' => $query,
+            'query' => $query
         ]);
     }
 }
