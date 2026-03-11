@@ -13,30 +13,31 @@ class AdminCompanyController extends Controller
         $query = trim($request->input('q', ''));
         $driver = DB::connection()->getDriverName();
 
-        $companies = Company::query()
-            ->when($query !== '', function ($q) use ($query, $driver) {
-                $normalized = strtoupper($query);
-                $normalized = str_replace([' ', '.', '-', '/', '\\'], '', $normalized);
+        $companies = Company::query();
 
-                if (str_starts_with($normalized, 'BE')) {
-                    $normalized = substr($normalized, 2);
-                }
+        if ($query !== '') {
+            $normalized = strtoupper($query);
+            $normalized = str_replace([' ', '.', '-', '/', '\\'], '', $normalized);
 
-                $nameOperator = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
+            if (str_starts_with($normalized, 'BE')) {
+                $normalized = substr($normalized, 2);
+            }
 
-                $enterpriseExpr = $driver === 'pgsql'
-                    ? "CAST(enterprise_number AS TEXT)"
-                    : "CAST(enterprise_number AS CHAR)";
+            $enterpriseExpr = $driver === 'pgsql'
+                ? "CAST(enterprise_number AS TEXT)"
+                : "CAST(enterprise_number AS CHAR)";
 
-                $normalizedEnterpriseExpr = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER({$enterpriseExpr}), ' ', ''), '.', ''), '-', ''), '/', ''), '\\\\', '')";
+            $normalizedEnterpriseExpr = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(UPPER({$enterpriseExpr}), ' ', ''), '.', ''), '-', ''), '/', ''), '\\\\', '')";
 
-                $q->where(function ($subQuery) use ($query, $normalized, $nameOperator, $enterpriseExpr, $normalizedEnterpriseExpr) {
-                    $subQuery->whereRaw("name {$nameOperator} ?", ['%' . $query . '%'])
-                        ->orWhereRaw("{$enterpriseExpr} LIKE ?", ['%' . $query . '%'])
-                        ->orWhereRaw("{$normalizedEnterpriseExpr} LIKE ?", ['%' . $normalized . '%']);
-                });
-            })
-            ->orderByRaw('LOWER(name) asc')
+            $companies->where(function ($q) use ($query, $normalized, $enterpriseExpr, $normalizedEnterpriseExpr) {
+                $q->whereRaw("LOWER(name) LIKE ?", ['%' . strtolower($query) . '%'])
+                  ->orWhereRaw("{$enterpriseExpr} LIKE ?", ['%' . $query . '%'])
+                  ->orWhereRaw("{$normalizedEnterpriseExpr} LIKE ?", ['%' . $normalized . '%']);
+            });
+        }
+
+        $companies = $companies
+            ->orderByRaw('LOWER(name) ASC')
             ->paginate(50)
             ->appends(['q' => $query]);
 
