@@ -55,23 +55,29 @@ class AdminCompanyController extends Controller
     }
 
 
+
     public function create()
     {
         return view('admin.companies.create');
     }
 
 
+
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'enterprise_number' => ['required', 'string', 'max:50'],
+            'enterprise_number' => ['required','string','max:50'],
+            'vat_number' => ['nullable','string','max:50'],
+            'name' => ['required','string','max:255'],
+            'status' => ['nullable','string','max:100'],
+            'legal_form' => ['nullable','string','max:255'],
+            'street' => ['nullable','string','max:255'],
+            'postal_code' => ['nullable','string','max:20'],
+            'city' => ['nullable','string','max:255'],
+            'start_date' => ['nullable','date'],
         ]);
 
-        $company = new Company();
-        $company->name = trim($validated['name']);
-        $company->enterprise_number = trim($validated['enterprise_number']);
-        $company->save();
+        Company::create($validated);
 
         return redirect()
             ->route('admin.companies.index')
@@ -79,29 +85,37 @@ class AdminCompanyController extends Controller
     }
 
 
+
     public function edit(Company $company)
     {
         return view('admin.companies.edit', [
-            'company' => $company,
+            'company' => $company
         ]);
     }
+
 
 
     public function update(Request $request, Company $company)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'enterprise_number' => ['required', 'string', 'max:50'],
+            'enterprise_number' => ['required','string','max:50'],
+            'vat_number' => ['nullable','string','max:50'],
+            'name' => ['required','string','max:255'],
+            'status' => ['nullable','string','max:100'],
+            'legal_form' => ['nullable','string','max:255'],
+            'street' => ['nullable','string','max:255'],
+            'postal_code' => ['nullable','string','max:20'],
+            'city' => ['nullable','string','max:255'],
+            'start_date' => ['nullable','date'],
         ]);
 
-        $company->name = trim($validated['name']);
-        $company->enterprise_number = trim($validated['enterprise_number']);
-        $company->save();
+        $company->update($validated);
 
         return redirect()
             ->route('admin.companies.index')
             ->with('success', 'Company updated successfully.');
     }
+
 
 
     public function destroy(Company $company)
